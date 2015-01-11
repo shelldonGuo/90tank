@@ -83,7 +83,7 @@ public class PlayerController {
     /** The main update method **/
     public void update(float delta) {
         processInput();
-        CollisionUtil.checkCollisionWithBlocks(player.getPosition(), player.getVelocity(), player.getBounds(), world, delta);
+        CollisionUtil.checkCollisionWithBlocks(player.getPosition(), player.getVelocity(), player.getBounds(), delta);
         player.update(delta);
     }
 

@@ -19,7 +19,7 @@ public class CollisionUtil {
     };
 
     /** Collision checking * */
-    public static void checkCollisionWithBlocks(Vector2 position, Vector2 velocity, Rectangle bounds, World world, float delta) {
+    public static boolean checkCollisionWithBlocks(Vector2 position, Vector2 velocity, Rectangle bounds, float delta) {
         boolean collision = false;
         // scale velocity to frame units
         velocity.scl(delta);
@@ -39,21 +39,21 @@ public class CollisionUtil {
             startX = endX = (int) Math.floor(bounds.x + bounds.width + velocity.x);
         }
         // get the block(s) bob can collide with
-        populateCollidableBlocks(world, startX, startY, endX, endY);
+        populateCollidableBlocks(WorldRender.world, startX, startY, endX, endY);
         // simulate bob's movement on the X
         playerRect.x += velocity.x;
         if (playerRect.x < 0 || playerRect.x + playerRect.width > WorldRender.CAM_HEIGHT) {
             collision = true;
         } else {
             // clear collision boxes in world
-            world.getCollisionRects().clear();
+            WorldRender.world.getCollisionRects().clear();
             // if bob collides, make his horizontal velocity 0
             for (Block block : collidable) {
                 if (block == null) continue;
                 if (playerRect.overlaps(block.getBounds())) {
                     collision = true;
                     velocity.x = 0;
-                    world.getCollisionRects().add(block.getBounds());
+                    WorldRender.world.getCollisionRects().add(block.getBounds());
                     break;
                 }
             }
@@ -68,7 +68,7 @@ public class CollisionUtil {
         } else {
             startY = endY = (int) Math.floor(bounds.y + bounds.height + velocity.y);
         }
-        populateCollidableBlocks(world, startX, startY, endX, endY);
+        populateCollidableBlocks(WorldRender.world, startX, startY, endX, endY);
         playerRect.y += velocity.y;
         if (playerRect.y < 0 || playerRect.y + playerRect.height > WorldRender.CAM_HEIGHT) {
             collision = true;
@@ -78,7 +78,7 @@ public class CollisionUtil {
                 if (playerRect.overlaps(block.getBounds())) {
                     collision = true;
                     velocity.y = 0;
-                    world.getCollisionRects().add(block.getBounds());
+                    WorldRender.world.getCollisionRects().add(block.getBounds());
                     break;
                 }
             }
@@ -95,6 +95,8 @@ public class CollisionUtil {
         velocity.scl(1 / delta);
 
         rectPool.free(playerRect);
+
+        return collision;
     }
 
     /** populate the collidable array with the blocks found in the enclosing coordinates * */

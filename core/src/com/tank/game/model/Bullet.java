@@ -2,7 +2,7 @@ package com.tank.game.model;
 
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
-
+import com.tank.game.utils.CollisionUtil;
 
 public class Bullet {
 
@@ -42,20 +42,18 @@ public class Bullet {
 
 	public void update(float deltaTime) {
 		if (state.equals(State.FLYING)) {
-			pos.add(vel.x * deltaTime, vel.y * deltaTime);
-			bounds.x = pos.x + 0.1f;
-			bounds.y = pos.y + 0.1f;
-			/*
-			if (checkHit()) {
+			if (checkHit(deltaTime)) {
 				state = State.DEAD;
 			}
-			*/
+			bounds.x = pos.x + 0.1f;
+			bounds.y = pos.y + 0.1f;
 		}
 	}
 
 	Rectangle[] r = {new Rectangle(), new Rectangle(), new Rectangle(), new Rectangle()};
 
-	private boolean checkHit () {
+	private boolean checkHit (float delta) {
+		return CollisionUtil.checkCollisionWithBlocks(pos, vel, bounds, delta);
 		/*
 		fetchCollidableRects();
 		for (int i = 0; i < r.length; i++) {
@@ -76,8 +74,6 @@ public class Bullet {
 			return true;
 		}
 		*/
-
-		return false;
 	}
 
 	private void fetchCollidableRects () {

@@ -22,7 +22,7 @@ public class WorldRender {
     public static final float CAM_HEIGHT = 26f;
     private static final float RUNNING_FRAME_DURATION = 0.06f;
 
-    private World world;
+    public static World world;
     Bullet bullet;
     private OrthographicCamera cam;
     private TextureRegion blockTexture;
