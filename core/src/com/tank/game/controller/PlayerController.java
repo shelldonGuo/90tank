@@ -6,6 +6,7 @@ import com.badlogic.gdx.utils.Pool;
 import com.tank.game.model.Block;
 import com.tank.game.model.Player;
 import com.tank.game.model.World;
+import com.tank.game.utils.CollisionUtil;
 import com.tank.game.view.WorldRender;
 
 import java.util.HashMap;
@@ -30,12 +31,7 @@ public class PlayerController {
         keys.put(Keys.FIRE, false);
     }
 
-    private Pool<Rectangle> rectPool = new Pool<Rectangle>() {
-        @Override
-        protected Rectangle newObject() {
-            return new Rectangle();
-        }
-    };
+
 
     public PlayerController(World world) {
         this.world = world;
@@ -87,11 +83,11 @@ public class PlayerController {
     /** The main update method **/
     public void update(float delta) {
         processInput();
-        checkCollisionWithBlocks(delta);
+        CollisionUtil.checkCollisionWithBlocks(player.getPosition(), player.getVelocity(), player.getBounds(), world, delta);
         player.update(delta);
     }
 
-    /** Change Bob's state and parameters based on input controls **/
+    /** Change Bob's state and parameters based on input controls * */
     private void processInput() {
         if (keys.get(Keys.LEFT)) {
             // left is pressed
@@ -129,94 +125,5 @@ public class PlayerController {
         }
     }
 
-    /** Collision checking * */
-    private void checkCollisionWithBlocks(float delta) {
-        boolean collision = false;
-        // scale velocity to frame units
-        player.getVelocity().scl(delta);
-        // Obtain the rectangle from the pool instead of instantiating it
-        Rectangle playerRect = rectPool.obtain();
-        // set the rectangle to bob's bounding box
-        playerRect.set(player.getBounds());
-        // we first check the movement on the horizontal X axis
-        int startX, endX;
-        int startY = (int) player.getBounds().y;
-        int endY = (int) (player.getBounds().y + player.getBounds().height);
-        // if Bob is heading left then we check if he collides with the block on his left
-        // we check the block on his right otherwise
-        if (player.getVelocity().x < 0) {
-            startX = endX = (int) Math.floor(player.getBounds().x + player.getVelocity().x);
-        } else {
-            startX = endX = (int) Math.floor(player.getBounds().x + player.getBounds().width + player.getVelocity().x);
-        }
-        // get the block(s) bob can collide with
-        populateCollidableBlocks(startX, startY, endX, endY);
-        // simulate bob's movement on the X
-        playerRect.x += player.getVelocity().x;
-        if (playerRect.x < 0 || playerRect.x + playerRect.width > WorldRender.CAM_HEIGHT) {
-            collision = true;
-        } else {
-            // clear collision boxes in world
-            world.getCollisionRects().clear();
-            // if bob collides, make his horizontal velocity 0
-            for (Block block : collidable) {
-                if (block == null) continue;
-                if (playerRect.overlaps(block.getBounds())) {
-                    collision = true;
-                    player.getVelocity().x = 0;
-                    world.getCollisionRects().add(block.getBounds());
-                    break;
-                }
-            }
-        }
-        // reset the x position of the collision box
-        playerRect.x = player.getPosition().x;
-        // the same thing but on the vertical Y axis
-        startX = (int) player.getBounds().x;
-        endX = (int) (player.getBounds().x + player.getBounds().width);
-        if (player.getVelocity().y < 0) {
-            startY = endY = (int) Math.floor(player.getBounds().y + player.getVelocity().y);
-        } else {
-            startY = endY = (int) Math.floor(player.getBounds().y + player.getBounds().height + player.getVelocity().y);
-        }
-        populateCollidableBlocks(startX, startY, endX, endY);
-        playerRect.y += player.getVelocity().y;
-        if (playerRect.y < 0 || playerRect.y + playerRect.height > WorldRender.CAM_HEIGHT) {
-            collision = true;
-        } else {
-            for (Block block : collidable) {
-                if (block == null) continue;
-                if (playerRect.overlaps(block.getBounds())) {
-                    collision = true;
-                    player.getVelocity().y = 0;
-                    world.getCollisionRects().add(block.getBounds());
-                    break;
-                }
-            }
-        }
-        // reset the collision box's position on Y
-        playerRect.y = player.getPosition().y;
-        // update Bob's position
-        if (!collision) {
-            player.getPosition().add(player.getVelocity());
-            player.getBounds().x = player.getPosition().x;
-            player.getBounds().y = player.getPosition().y;
-        }
-        // un-scale velocity (not in frame time)
-        player.getVelocity().scl(1 / delta);
 
-        rectPool.free(playerRect);
-    }
-
-    /** populate the collidable array with the blocks found in the enclosing coordinates * */
-    private void populateCollidableBlocks(int startX, int startY, int endX, int endY) {
-        collidable.clear();
-        for (int x = startX; x <= endX; x++) {
-            for (int y = startY; y <= endY; y++) {
-                if (x >= 0 && x < world.getLevel().getWidth() && y >= 0 && y < world.getLevel().getHeight()) {
-                    collidable.add(world.getLevel().get(x, y));
-                }
-            }
-        }
-    }
 }
