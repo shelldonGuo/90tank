@@ -22,7 +22,7 @@ public class CollisionUtil {
     public static void checkCollisionWithBlocks(Vector2 position, Vector2 velocity, Rectangle bounds, World world, float delta) {
         boolean collision = false;
         // scale velocity to frame units
-        position.scl(delta);
+        velocity.scl(delta);
         // Obtain the rectangle from the pool instead of instantiating it
         Rectangle playerRect = rectPool.obtain();
         // set the rectangle to bob's bounding box
